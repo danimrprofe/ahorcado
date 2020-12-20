@@ -1,12 +1,15 @@
 import random
 import imprimir as im 
 import diccionario as d
+from marcador import marcador 
 import os # Para borrar la pantalla        
 
 
-puntos = 50
+
 
 dic = d.diccionario()
+marc = marcador()
+
 
 
 def resolver(palabraSecreta):
@@ -27,13 +30,6 @@ def jugarOtra():
       return True
    
 
-  
-
-def actualizaPuntos(puntos,puntosNuevos):
-  if (puntos + puntosNuevos) <= 0:
-    return 0
-  else:
-    return puntos + puntosNuevos
 
 def mostrarNormas():
   im.imprimir("Cada letra acertada da 10 puntos\n")
@@ -53,10 +49,13 @@ input(f"hola {nombreJugador}, vamos a jugar al ahorcado")
 if input("¿Conoces las normas <s/n>?") == "no":
   mostrarNormas()
 
+marc.puntos = 50
+puntosVocal = 30
+
 while juegoNuevo:
 
   letraIncorrecta = []
-  letraCorrecta = []
+  letraCorrecta = [] 
 
   dic.cargaDiccionario()  
   palabraSecreta = dic.palabra
@@ -67,13 +66,13 @@ while juegoNuevo:
 
   juegoTerminado = False
   
-  while not juegoTerminado:
+  while (not juegoTerminado) and marc.quedanPuntos():
       
       _ = os.system('cls')    
           
       # Mostrar las letras incorrectas
 
-      print(f"Puntos {nombreJugador}: {puntos}\n")
+      print(f"Puntos {nombreJugador}: {marc.getPuntos()}\n")
 
       print ('\nLetras incorrectas: ', end = '')
       for letra in letraIncorrecta:
@@ -99,10 +98,6 @@ while juegoNuevo:
       
       letra = dic.eligeLetra()
       
-      if letra in "aeiou":
-        input("has elegido una vocal. Te costará 30 puntos")
-        puntos = actualizaPuntos(puntos,-30)
-
       if letra == "re":
         resuelto = resolver(palabraSecreta)
         letrasSobrantes = len(palabraSecreta) - len(letraCorrecta)
@@ -110,15 +105,20 @@ while juegoNuevo:
         if resuelto:
           juegoTerminado = True
           print(f"Has ganado {letrasSobrantes} x 20 puntos =  {puntosResolver}")
-          puntos = actualizaPuntos(puntos,puntosResolver)
+          marc.suma(puntosResolver)
           break
         else:          
           print(f"Has perdido {letrasSobrantes} x 20 puntos =  {puntosResolver}")
-          puntos = actualizaPuntos(puntos,-puntosResolver)
+          marc.resta(puntosResolver)
           break
-      elif letra in palabraSecreta:
-          letraCorrecta.append(letra)
-          puntos =actualizaPuntos(puntos,10)
+      else:
+        if letra in "aeiou":
+          im.imprimir(f"Comprar vocal: -{puntosVocal}")          
+          marc.resta(puntosVocal)      
+        if letra in palabraSecreta:
+          letraCorrecta.append(letra)          
+          marc.suma(10)
+          im.imprimir("La letra está en la palabra: +10 puntos")
           # Se fija si el jugador ganó
           letrasEncontradas = True
           for i in range(longitudPalabra):
@@ -128,8 +128,9 @@ while juegoNuevo:
           if letrasEncontradas:
               print ('¡Muy bien! La palabra secreta es "' + palabraSecreta + '"! ¡Has ganado!')
               juegoTerminado = True
-      else:
-          puntos = actualizaPuntos(puntos,-15)
+        else:
+          im.imprimir("La letra no está en la palabra: -5 puntos")
+          marc.resta(5)
           if letra in letraIncorrecta:
             input ('Esta letra ya la habías dicho <pulsa enter>')
           else:
@@ -138,5 +139,6 @@ while juegoNuevo:
           if len(letraIncorrecta) == len(AHORCADO) - 1:            
               print ('¡Se ha quedado sin letras!\nDespues de ' + str(len(letraIncorrecta)) + ' letras erroneas y ' + str(len(letraCorrecta)) + ' letras correctas, la palabra era "' + palabraSecreta + '"')
               juegoTerminado = True
+      
 
   juegoNuevo = jugarOtra()
